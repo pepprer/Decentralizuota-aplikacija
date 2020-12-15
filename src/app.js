@@ -77,7 +77,6 @@ App = {
     renderJobs: async() => {
         const taskCount = await App.JobList.count()
         const $taskTemplate = $('.taskTemplate')
-        console.log(taskCount);
         for (var i = 1; i <= taskCount; i++) {
             const task = await App.JobList.jobs(i)
             const taskId = task[0].toNumber()
