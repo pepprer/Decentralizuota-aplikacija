@@ -1,89 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>To do List</title>
-
-    <!-- Bootstrap -->
     <link href="vendor/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
-    <style>
-        main {
-            margin-top: 60px;
-        }
-
-        #content {
-            display: none;
-        }
-
-        form {
-            width: 350px;
-            margin-bottom: 10px;
-        }
-
-        ul {
-            margin-bottom: 0px;
-        }
-
-        #completedTaskList .content {
-            color: grey;
-            text-decoration: line-through;
-        }
-    </style>
 </head>
 
 <body>
-<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0">Todo List</a>
-    <ul class="navbar-nav px-3">
-        <li class="nav-item text-nowrap d-none d-sm-none d-sm-block">
-            <small><a class="nav-link" href="#"><span id="account"></span></a></small>
-        </li>
-    </ul>
-</nav>
-<div class="container-fluid">
-    <div class="row">
-        <main role="main" class="col-lg-12 d-flex justify-content-center">
-            <div id="loader" class="text-center">
-                <p class="text-center">Loading...</p>
-            </div>
-            <div id="content">
-                <form onSubmit="App.createJob(); return false;">
-                    <input id="newTask" type="text" class="form-control" placeholder="Add task..." required>
-                    <input type="submit" hidden="">
-                </form>
-                <ul id="taskList" class="list-unstyled">
-                    <div class="taskTemplate" class="checkbox" style="display: none">
-                        <label>
-                            <input type="checkbox" />
-                            <span class="content">Task content goes here...</span>
-                        </label>
-                    </div>
+<div id="app">
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <a class="navbar-brand" href="#">Užsakymai</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+                    aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Pricing</a>
+                    </li>
                 </ul>
-                <ul id="completedTaskList" class="list-unstyled">
-                </ul>
+                <span class="navbar-text">
+                {{owner}}
+            </span>
             </div>
-        </main>
+        </nav>
+        <table class="table">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col">Nr</th>
+                <th scope="col">Pirkėjas</th>
+                <th scope="col">Prekė</th>
+                <th scope="col">Kiekis</th>
+                <th scope="col">Kaina</th>
+                <th scope="col">Saugus apmokėjimas</th>
+                <th scope="col">Siuntos kaina</th>
+                <th scope="col">Siuntos saugus apmokėjimas</th>
+                <th scope="col">Veiksmas</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(order, index) in orders">
+                <th scope="row">{{ index+1 }}</th>
+                <td>{{order[0]}}</td>
+                <td>{{order[1]}}</td>
+                <td>{{order[2]}}</td>
+                <td>{{order[3]}}</td>
+                <td>{{order[4]}}</td>
+                <td>{{order[5]}}</td>
+                <td>{{order[6]}}</td>
+                <td>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#model2" v-on:click="orderNo = index +1" v-if="order[5] <= 0">
+                        Nustatyti kaina
+                    </button>
+                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#model2" v-on:click="pay(index + 1)" v-else>
+                        Sumoketi
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="row text-right">
+            <div class="col">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#model1">
+                    Užsakyti
+                </button>
+            </div>
+        </div>
     </div>
-</div>
+    <div class="modal fade" id="model1" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Užsakymas</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form v-on:submit="createOrder">
+                    <div class="modal-body">
+                            <div class="form-group">
+                                <label>Pavadinimas</label>
+                                <input class="form-control" placeholder="Pavadinimas" v-model="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Kiekis</label>
+                                <input type="number" class="form-control" placeholder="Kiekis" v-model="quantity" required min=1>
+                            </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="closeModal" class="btn btn-danger" data-dismiss="modal">Uždaryti</button>
+                        <button type="submit" class="btn btn-success">Užsakyti</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="model2" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-hidden="true" v-if="orderNo !== null">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" v-if="orders[orderNo - 1][3] <= 0">Kaina už užsakyma</h5>
+                    <h5 class="modal-title" v-else>Kaina už pristatyma</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form v-on:submit="setPrice">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Kaina</label>
+                            <input type="number" class="form-control" placeholder="Kaina" v-model="price" required min=1>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="closeModal2" class="btn btn-danger" data-dismiss="modal">Uždaryti</button>
+                        <button type="submit" class="btn btn-success">Nustatyti</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="vendor/truffle-contract/dist/truffle-contract.js"></script>
-<script src="app2.js"></script>
+<script src="app.js"></script>
 </body>
-
 </html>

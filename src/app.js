@@ -1,120 +1,94 @@
 App = {
-    loading: false,
     contracts: {},
+};
 
-    load: async() => {
-        await App.loadWeb3()
-        await App.loadAccount()
-        await App.loadContract()
-        await App.render()
-    },
+var app = new Vue({
+    el: '#app',
 
-    loadWeb3: async() => {
-        if (typeof web3 !== 'undefined') {
-            App.web3Provider = web3.currentProvider
-            web3 = new Web3(web3.currentProvider)
-        } else {
-            window.alert("Please connect to Metamask.")
-        }
-        if (window.ethereum) {
-            window.web3 = new Web3(ethereum)
-            try {
-                await ethereum.enable()
-                web3.eth.sendTransaction({ /* ... */ })
-            } catch (error) {
-            }
-        }
-        else if (window.web3) {
-            App.web3Provider = web3.currentProvider
-            window.web3 = new Web3(web3.currentProvider)
-            web3.eth.sendTransaction({ /* ... */ })
-        }
-        else {
-            console.log('Non-Ethereum browser detected. You should consider trying MetaMask!')
+    data() {
+        return {
+            owner: "",
+            orders: [],
+            name: "",
+            quantity: 1,
+            ordersCount: 0,
+            orderNo: null,
+            price: 1,
         }
     },
 
-    loadAccount: async() => {
-        App.account = web3.eth.accounts[0]
+    async created() {
+        await this.loadWeb3();
+        await this.loadAccount();
+        await this.loadContract();
+        await this.getOrders();
     },
 
-    loadContract: async() => {
-        const jobList = await $.getJSON('JobList.json')
-        App.contracts.JobList = TruffleContract(jobList)
-        App.contracts.JobList.setProvider(App.web3Provider)
-
-        App.JobList = await App.contracts.JobList.deployed()
-    },
-
-    render: async() => {
-        if (App.loading) {
-            return
-        }
-        App.setLoading(true)
-
-        $('#account').html(App.account)
-
-        await App.renderJobs()
-
-        App.setLoading(false)
-
-    },
-
-    createJob: async() => {
-        App.setLoading(true)
-        const content = $('#newTask').val()
-        await App.JobList.createJob(content);
-        window.location.reload()
-    },
-
-    toggleDone: async(e) => {
-        App.setLoading(true)
-        const taskId = e.target.name
-        await App.JobList.toggleDone(taskId)
-        window.location.reload()
-    },
-
-    renderJobs: async() => {
-        const taskCount = await App.JobList.count()
-        const $taskTemplate = $('.taskTemplate')
-        for (var i = 1; i <= taskCount; i++) {
-            const task = await App.JobList.jobs(i)
-            const taskId = task[0].toNumber()
-            const taskContent = task[1]
-            const taskCompleted = task[2]
-
-            const $newTaskTemplate = $taskTemplate.clone()
-            $newTaskTemplate.find('.content').html(taskContent)
-            $newTaskTemplate.find('input')
-                .prop('name', taskId)
-                .prop('checked', taskCompleted)
-                .on('click', App.toggleDone)
-
-            if (taskCompleted) {
-                $('#completedTaskList').append($newTaskTemplate)
+    methods: {
+        async loadWeb3() {
+            if (typeof web3 !== 'undefined') {
+                App.web3Provider = web3.currentProvider;
+                web3 = new Web3(web3.currentProvider)
             } else {
-                $('#taskList').append($newTaskTemplate)
+                window.alert("Please connect to Metamask.")
             }
-            $newTaskTemplate.show()
-        }
-    },
+            if (window.ethereum) {
+                window.web3 = new Web3(ethereum);
+                try {
+                    await ethereum.enable();
+                    web3.eth.sendTransaction({ /* ... */})
+                } catch (error) {
+                }
+            } else if (window.web3) {
+                App.web3Provider = web3.currentProvider;
+                window.web3 = new Web3(web3.currentProvider);
+                web3.eth.sendTransaction({ /* ... */})
+            } else {
+                console.log('Non-Ethereum browser detected. You should consider trying MetaMask!')
+            }
+        },
 
-    setLoading: (boolean) => {
-        App.loading = boolean
-        const loader = $('#loader')
-        const content = $('#content')
-        if (boolean) {
-            loader.show()
-            content.hide()
-        } else {
-            loader.hide()
-            content.show()
+        async loadAccount() {
+            this.owner = web3.eth.accounts[0];
+        },
+
+        async loadContract() {
+            const deal = await $.getJSON('Deal.json');
+            App.contracts.Deal = TruffleContract(deal);
+            App.contracts.Deal.setProvider(App.web3Provider);
+            App.Deal = await App.contracts.Deal.deployed();
+            this.ordersCount = await App.Deal.orderseq();
+        },
+
+        async getOrders() {
+            for (let i = 1; i <= this.ordersCount; i++) {
+                let task = await App.Deal.queryOrder(i);
+                task[3] = JSON.parse(JSON.stringify(task[3]));
+                task[5] = JSON.parse(JSON.stringify(task[5]));
+                this.orders.push(task);
+            }
+        },
+
+        async createOrder() {
+            await App.Deal.sendOrder(this.name, this.quantity);
+            this.name = "";
+            this.quantity = 1;
+            this.ordersCount++;
+            this.orders.push(await App.Deal.queryOrder(this.ordersCount));
+            document.getElementById("closeModal").click();
+        },
+
+        async setPrice() {
+            let which = this.orders[this.orderNo - 1][3] <= 0 ? 1 : 2;
+            await App.Deal.sendPrice(this.orderNo, this.price, which);
+            this.orders[this.orderNo - 1] = await App.Deal.queryOrder(this.orderNo);
+            this.orderNo = null;
+            this.price = 1;
+            document.getElementById("closeModal2").click();
+        },
+
+        async pay(nr) {
+            await App.Deal.sendSafepay(nr);
         }
     }
-}
-
-$(() => {
-    $(window).load(() => {
-        App.load()
-    })
-})
+});
