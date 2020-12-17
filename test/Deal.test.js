@@ -1,12 +1,10 @@
-var Deal  = artifacts.require("Deal");
-var utils = require("../utils.js");
+const Deal  = artifacts.require("Deal");
 
-contract("Deal", function(accounts){
+contract("Deal", (accounts) => {
 
     const ORDER_PRICE            = 3;
     const ORDER_SAFEPAY          = 4;
     const ORDER_SHIPMENT_PRICE   = 5;
-    const ORDER_SHIPMENT_SAFEPAY = 6;
 
     const INVOICE_ORDERNO = 1;
     const INVOICE_COURIER = 3;
@@ -14,258 +12,209 @@ contract("Deal", function(accounts){
     const TYPE_ORDER    = 1;
     const TYPE_SHIPMENT = 2;
 
-    var seller         = null;
-    var buyer          = null;
-    var courier        = null;
-    var orderno        = null;
-    var invoiceno      = null;
-    var order_price    = null;
-    var shipment_price = null;
-    var price          = null;
-    var goods          = null;
-    var quantity       = null;
+    let seller         = accounts[0];
+    let buyer          = accounts[1];
+    let courier        = accounts[2];
+    let orderno        = 1;
+    let invoiceno      = 1;
+    let order_price    = 100000;
+    let shipment_price = 50000;
+    let price          = 150000;
+    let goods          = "Iphone";
+    let quantity       = 1;
 
-    before(function(){
-        seller         = accounts[0];
-        buyer          = accounts[1];
-        courier        = accounts[2];
-        orderno        = 1;
-        invoiceno      = 1;
-        order_price    = 100000;
-        shipment_price = 50000;
-        price          = order_price + shipment_price;
-        goods          = "Banana";
-        quantity       = 200;
-    });
-
-    it("should the seller account owns the contract", function(){
-
-        var deal;
-
-        return Deal.new(buyer, {from: seller}).then(function(instance){
-            deal = instance;
-
-            return deal.owner();
-        }).then(function(owner){
-            assert.equal(seller, owner, "The seller account did not owns the contract");
+    it("Ar sutartis priklauso pardavėjo sąskaitai?", () => {
+        Deal.new(buyer, {from: seller}).then((instance) => {
+            return instance.owner();
+        }).then((owner) => {
+            assert.equal(seller, owner);
         });
 
     });
 
-    it("should the second account was the buyer", function(){
-
-        var deal;
-
-        return Deal.new(buyer, {from: seller}).then(function(instance){
-            deal = instance;
-
-            return deal.buyerAddr();
-        }).then(function(buyer){
-            assert.equal(accounts[1], buyer, "The second account was not the buyer");
+    it("Ar pirkėjas yra antroji sąskaita?", () => {
+        Deal.new(buyer, {from: seller}).then((instance) => {
+            return instance.buyerAddr();
+        }).then((buyer) => {
+            assert.equal(accounts[1], buyer);
         });
-
     });
 
-    it("should first order was number 1", function(){
+    it("Ar pirmasis užsakymas yra 1?", () => {
+        let deal;
 
-        var deal;
-
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        Deal.new(buyer, {from: seller}).then((instance) => {
             deal = instance;
-
-            return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(transaction){
-            return new Promise(function(resolve, reject){
-                return web3.eth.getTransaction(transaction.tx, function(err, tx){
+            return instance.sendOrder(goods, quantity, {from: buyer});
+        }).then((transaction) => {
+            return new Promise((resolve, reject) => {
+                return web3.eth.getTransaction(transaction.tx, (err, tx) => {
                     if(err){
                         reject(err);
                     }
                     resolve(tx);
                 });
             });
-        }).then(function(tx){
-            console.log(tx.gasPrice.toString());
-        }).then(function(){
-            //query getTransactionReceipt
-        }).then(function(){
+        }).then(() => {
             return deal.queryOrder(orderno);
-        }).then(function(order){
-            assert.notEqual(order, null, "The order number 1 did not exists");
+        }).then((order) => {
+            assert.notEqual(order, null);
         });
-
     });
 
-    it("should the shipment price was set", function(){
+    it("Ar nustatyta siuntos kaina?", () => {
+        let deal;
 
-        var deal;
-
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        return Deal.new(buyer, {from: seller}).then((instance) => {
             deal = instance;
-
             return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, shipment_price, TYPE_SHIPMENT, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.queryOrder(orderno);
-        }).then(function(order){
+        }).then((order) => {
             assert.equal(order[ORDER_SHIPMENT_PRICE].toString(), shipment_price);
         });
-
     });
 
-    it("should the order's price was set", function(){
-
+    it("Ar nustatyta užsakymo kaina?", ()  => {
         var deal;
 
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        return Deal.new(buyer, {from: seller}).then((instance) => {
             deal = instance;
-
             return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, order_price, TYPE_ORDER, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.queryOrder(orderno);
-        }).then(function(order){
+        }).then((order) => {
             assert.equal(order[ORDER_PRICE].toString(), order_price);
         });
-
     });
 
-    it("should the safe pay was correct", function(){
-
+    it("Ar saugus mokėjimas buvo teisingas?", () => {
         var deal;
 
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        return Deal.new(buyer, {from: seller}).then((instance)  => {
             deal = instance;
-
             return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, order_price, TYPE_ORDER, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, shipment_price, TYPE_SHIPMENT, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendSafepay(orderno, {from: buyer, value: price});
-        }).then(function(){
+        }).then(() => {
             return deal.queryOrder(orderno);
-        }).then(function(order){
+        }).then((order) => {
             assert.equal(order[ORDER_SAFEPAY].toString(), price);
         });
     });
 
-    it("should the contract's balance was correct after the safepay", function(){
-
+    it("Ar teisingas sutarties balansas po saugaus apmokėjimo?", () => {
         var deal;
 
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        return Deal.new(buyer, {from: seller}).then((instance) => {
             deal = instance;
-
             return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, order_price, TYPE_ORDER, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, shipment_price, TYPE_SHIPMENT, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendSafepay(orderno, {from: buyer, value: price});
-        }).then(function(){
-            return new Promise(function(resolve, reject){
-                return web3.eth.getBalance(deal.address, function(err, hash){
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                return web3.eth.getBalance(deal.address, (err, hash) => {
                     if(err){
                         reject(err);
                     }
                     resolve(hash);
                 });
             });
-        }).then(function(balance){
+        }).then((balance) => {
             assert.equal(balance.toString(), price);
         });
     });
 
-    it("should the first invoice was number 1", function(){
-
+    it("Ar pirmasis saskaita yra 1?", () => {
         var deal;
 
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        return Deal.new(buyer, {from: seller}).then((instance) => {
             deal = instance;
-
             return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, price, TYPE_ORDER, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendInvoice(orderno, 0, courier, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.getInvoice(invoiceno);
-        }).then(function(invoice){
+        }).then((invoice) => {
             assert.notEqual(invoice, null);
         });
     });
 
 
-    it("should the invoice 1 it is for order 1", function(){
-
+    it("Ar 1 sąskaitos faktūra yra skirta 1 užsakymui?", () => {
         var deal;
 
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        return Deal.new(buyer, {from: seller}).then((instance) => {
             deal = instance;
-
             return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, price, TYPE_ORDER, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendInvoice(orderno, 0, courier, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.getInvoice(invoiceno);
-        }).then(function(invoice){
+        }).then((invoice) => {
             assert.equal(invoice[INVOICE_ORDERNO].toString(), orderno);
         });
     });
 
-    it("should the courier was correct", function(){
-
+    it("Ar kurjeris yra teisus?", () => {
         var deal;
 
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        return Deal.new(buyer, {from: seller}).then((instance) => {
             deal = instance;
-
             return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, price, TYPE_ORDER, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendInvoice(orderno, 0, courier, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.getInvoice(invoiceno);
-        }).then(function(invoice){
+        }).then((invoice) => {
             assert.equal(invoice[INVOICE_COURIER].toString(), courier);
         });
     });
 
-    it("should the contract's balance was correct after the delivery", function(){
-
+    it("Ar po pristatymo sutarties likutis yra teisingas?", () => {
         var deal;
 
-        return Deal.new(buyer, {from: seller}).then(function(instance){
+        return Deal.new(buyer, {from: seller}).then((instance) => {
             deal = instance;
-
             return deal.sendOrder(goods, quantity, {from: buyer});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, order_price, TYPE_ORDER, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendPrice(orderno, shipment_price, TYPE_SHIPMENT, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.sendSafepay(orderno, {from: buyer, value: price});
-        }).then(function(){
+        }).then(() => {
             return deal.sendInvoice(orderno, 0, courier, {from: seller});
-        }).then(function(){
+        }).then(() => {
             return deal.delivery(invoiceno, 0, {from: courier});
-        }).then(function(){
-            return new Promise(function(resolve, reject){
-                return web3.eth.getBalance(deal.address, function(err, hash){
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                return web3.eth.getBalance(deal.address, (err, hash) => {
                     if(err){
                         reject(err);
                     }
                     resolve(hash);
                 });
             });
-        }).then(function(balance){
+        }).then((balance) => {
             assert.equal(balance.toString(), 0);
         });
     });

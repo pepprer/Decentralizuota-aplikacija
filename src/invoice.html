@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://localhost:63342/solid/node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+<div id="app">
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <a class="navbar-brand" href="#">SmartContract</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+                    aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://localhost:63342/solid/src/index.html?_ijt=k8rjto4ovr6ensrhk09kr170v2">Užsakymai</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Sąskaitos faktūros</a>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+                {{owner}}
+            </span>
+            </div>
+        </nav>
+        <table class="table">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col">Nr</th>
+                <th scope="col">Pirkėjas</th>
+                <th scope="col">Užsakymo Nr.</th>
+                <th scope="col">Pristatymo data</th>
+                <th scope="col">Kurjeris</th>
+                <th scope="col">Veiksmas</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(invoice, index) in invoices">
+                <th scope="row">{{ index+1 }}</th>
+                <td>{{invoice[0]}}</td>
+                <td>{{invoice[1]}}</td>
+                <td>{{(new Date(1000*invoice[2])).toLocaleString()}}</td>
+                <td>{{invoice[3]}}</td>
+                <td>
+                    <button type="button" class="btn btn-primary" v-if="invoice[5] <= 0" v-on:click="delivery(index + 1)">
+                        Pristatyti
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="http://localhost:63342/solid/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="http://localhost:63342/solid/node_modules/truffle-contract/dist/truffle-contract.js"></script>
+<script src="http://localhost:63342/solid/src/app.js"></script>
+</body>
+</html>

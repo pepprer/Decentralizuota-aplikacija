@@ -9,9 +9,11 @@ var app = new Vue({
         return {
             owner: "",
             orders: [],
+            invoices: [],
             name: "",
             quantity: 1,
             ordersCount: 0,
+            invoicesCount: 0,
             orderNo: null,
             price: 1,
         }
@@ -22,6 +24,7 @@ var app = new Vue({
         await this.loadAccount();
         await this.loadContract();
         await this.getOrders();
+        await this.getInvoices();
     },
 
     methods: {
@@ -53,35 +56,54 @@ var app = new Vue({
         },
 
         async loadContract() {
-            const deal = await $.getJSON('Deal.json');
+            const deal = await $.getJSON('http://localhost:63342/solid/build/contracts/Deal.json');
             App.contracts.Deal = TruffleContract(deal);
             App.contracts.Deal.setProvider(App.web3Provider);
             App.Deal = await App.contracts.Deal.deployed();
             this.ordersCount = await App.Deal.orderseq();
+            this.invoicesCount = await App.Deal.invoiceseq();
         },
 
         async getOrders() {
+            this.orders = [];
             for (let i = 1; i <= this.ordersCount; i++) {
                 let task = await App.Deal.queryOrder(i);
                 task[3] = JSON.parse(JSON.stringify(task[3]));
+                task[4] = JSON.parse(JSON.stringify(task[4]));
                 task[5] = JSON.parse(JSON.stringify(task[5]));
+                let task2 = await App.Deal.queryOrder2(i);
+                task2 = JSON.parse(JSON.stringify(task2));
+                task.push(task2);
                 this.orders.push(task);
             }
         },
 
-        async createOrder() {
+        async getInvoices() {
+            this.invoices = [];
+            for (let i = 1; i <= this.invoicesCount; i++) {
+                let task = await App.Deal.getInvoice(i);
+                task[2] = JSON.parse(JSON.stringify(task[2]));
+                task[4] = JSON.parse(JSON.stringify(task[4]));
+                task[5] = JSON.parse(JSON.stringify(task[5]));
+                this.invoices.push(task);
+            }
+        },
+
+        async createOrder(e) {
+            e.preventDefault();
             await App.Deal.sendOrder(this.name, this.quantity);
             this.name = "";
             this.quantity = 1;
             this.ordersCount++;
-            this.orders.push(await App.Deal.queryOrder(this.ordersCount));
+            this.getOrders();
             document.getElementById("closeModal").click();
         },
 
-        async setPrice() {
+        async setPrice(e) {
+            e.preventDefault();
             let which = this.orders[this.orderNo - 1][3] <= 0 ? 1 : 2;
             await App.Deal.sendPrice(this.orderNo, this.price, which);
-            this.orders[this.orderNo - 1] = await App.Deal.queryOrder(this.orderNo);
+            this.getOrders();
             this.orderNo = null;
             this.price = 1;
             document.getElementById("closeModal2").click();
@@ -89,6 +111,17 @@ var app = new Vue({
 
         async pay(nr) {
             await App.Deal.sendSafepay(nr);
+            this.getOrders();
+        },
+
+        async sendInvoice(nr) {
+            await App.Deal.sendInvoice(nr, parseInt(new Date().getTime()/1000), '0x558669A7d5D8936bBD07c073860a331DcDE234Ac');
+            this.getOrders();
+        },
+
+        async delivery(nr) {
+            await App.Deal.delivery(nr, parseInt(new Date().getTime()/1000));
+            this.getInvoices();
         }
     }
 });

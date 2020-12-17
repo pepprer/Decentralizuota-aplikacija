@@ -5,14 +5,14 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="vendor/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://localhost:63342/solid/node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
 <div id="app">
     <div class="container-fluid">
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <a class="navbar-brand" href="#">Užsakymai</a>
+            <a class="navbar-brand" href="#">SmartContract</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
                     aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -20,13 +20,10 @@
             <div class="collapse navbar-collapse" id="navbarText">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="#">Užsakymai<span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Pricing</a>
+                        <a class="nav-link" href="http://localhost:63342/solid/src/invoice.html?_ijt=k8rjto4ovr6ensrhk09kr170v2">Sąskaitos faktūros</a>
                     </li>
                 </ul>
                 <span class="navbar-text">
@@ -62,8 +59,11 @@
                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#model2" v-on:click="orderNo = index +1" v-if="order[5] <= 0">
                         Nustatyti kaina
                     </button>
-                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#model2" v-on:click="pay(index + 1)" v-else>
+                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#model2" v-on:click="pay(index + 1)" v-else-if="order[4] <= 0">
                         Sumoketi
+                    </button>
+                    <button type="button" class="btn btn-primary" v-else-if="order[7] <= 0" v-on:click="sendInvoice(index + 1)" >
+                        Siųsti sąskaitos faktūrą
                     </button>
                 </td>
             </tr>
@@ -88,14 +88,14 @@
                 </div>
                 <form v-on:submit="createOrder">
                     <div class="modal-body">
-                            <div class="form-group">
-                                <label>Pavadinimas</label>
-                                <input class="form-control" placeholder="Pavadinimas" v-model="name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Kiekis</label>
-                                <input type="number" class="form-control" placeholder="Kiekis" v-model="quantity" required min=1>
-                            </div>
+                        <div class="form-group">
+                            <label>Pavadinimas</label>
+                            <input class="form-control" placeholder="Pavadinimas" v-model="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kiekis</label>
+                            <input type="number" class="form-control" placeholder="Kiekis" v-model="quantity" required min=1>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" id="closeModal" class="btn btn-danger" data-dismiss="modal">Uždaryti</button>
@@ -130,12 +130,11 @@
             </div>
         </div>
     </div>
-
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="vendor/truffle-contract/dist/truffle-contract.js"></script>
-<script src="app.js"></script>
+<script src="http://localhost:63342/solid/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="http://localhost:63342/solid/node_modules/truffle-contract/dist/truffle-contract.js"></script>
+<script src="http://localhost:63342/solid/src/app.js"></script>
 </body>
 </html>
