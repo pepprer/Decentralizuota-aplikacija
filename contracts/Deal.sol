@@ -39,7 +39,6 @@ contract Deal {
     uint public orderseq;
     uint public invoiceseq;
 
-    event BuyerRegistered(address buyer, string name);
     event OrderSent(address buyer, string goods, uint quantity, uint orderno);
     event PriceSent(address buyer, uint orderno, uint price, int8 ttype);
     event SafepaySent(address buyer, uint orderno, uint value, uint now);
