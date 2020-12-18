@@ -17,7 +17,7 @@ contract SmartContract {
     }
 
     struct Order {
-        string goods;
+        string product;
         uint quantity;
         uint number;
         uint price;
@@ -39,7 +39,7 @@ contract SmartContract {
     uint public orderseq;
     uint public invoiceseq;
 
-    event OrderSent(address buyer, string goods, uint quantity, uint orderno);
+    event OrderSent(address buyer, string product, uint quantity, uint orderno);
     event PriceSent(address buyer, uint orderno, uint price, int8 ttype);
     event SafepaySent(address buyer, uint orderno, uint value, uint now);
     event InvoiceSent(address buyer, uint invoiceno, uint orderno, uint delivery_date, address courier);
@@ -50,16 +50,16 @@ contract SmartContract {
         buyerAddr = _buyerAddr;
     }
 
-    function sendOrder(string memory goods, uint quantity) public {
+    function sendOrder(string memory product, uint quantity) public {
         require(msg.sender == buyerAddr);
         orderseq++;
-        orders[orderseq] = Order(goods, quantity, orderseq, 0, 0, Shipment(address(0), 0, 0, address(0), 0, 0, false), true);
-        emit OrderSent(msg.sender, goods, quantity, orderseq);
+        orders[orderseq] = Order(product, quantity, orderseq, 0, 0, Shipment(address(0), 0, 0, address(0), 0, 0, false), true);
+        emit OrderSent(msg.sender, product, quantity, orderseq);
     }
 
-    function queryOrder(uint number) view public returns (address buyer, string memory goods, uint quantity, uint price, uint safepay, uint delivery_price, uint delivey_safepay) {
+    function queryOrder(uint number) view public returns (address buyer, string memory product, uint quantity, uint price, uint safepay, uint delivery_price, uint delivey_safepay) {
         require(orders[number].init);
-        return (buyerAddr, orders[number].goods, orders[number].quantity, orders[number].price, orders[number].safepay, orders[number].shipment.price, orders[number].shipment.safepay);
+        return (buyerAddr, orders[number].product, orders[number].quantity, orders[number].price, orders[number].safepay, orders[number].shipment.price, orders[number].shipment.safepay);
     }
 
     function queryOrder2(uint number) view public returns (uint date) {
