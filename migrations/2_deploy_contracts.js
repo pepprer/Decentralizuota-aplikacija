@@ -1,5 +1,5 @@
-const Deal = artifacts.require("Deal");
+const SmartContract = artifacts.require("SmartContract");
 
 module.exports = function(deployer, network, accounts){
-    deployer.deploy(Deal, accounts[1]);
+    deployer.deploy(SmartContract, accounts[1]);
 };

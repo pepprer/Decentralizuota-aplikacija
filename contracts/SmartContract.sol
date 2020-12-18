@@ -1,6 +1,6 @@
 pragma solidity >=0.4.22 <0.8.0;
 
-contract Deal {
+contract SmartContract {
 
     address payable public owner;
     address public buyerAddr;

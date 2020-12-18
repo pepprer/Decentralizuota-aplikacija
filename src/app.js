@@ -56,22 +56,22 @@ var app = new Vue({
         },
 
         async loadContract() {
-            const deal = await $.getJSON('http://localhost:63342/solid/build/contracts/Deal.json');
-            App.contracts.Deal = TruffleContract(deal);
-            App.contracts.Deal.setProvider(App.web3Provider);
-            App.Deal = await App.contracts.Deal.deployed();
-            this.ordersCount = await App.Deal.orderseq();
-            this.invoicesCount = await App.Deal.invoiceseq();
+            const smartContract = await $.getJSON('http://localhost:63342/solid/build/contracts/SmartContract.json');
+            App.contracts.SmartContract = TruffleContract(smartContract);
+            App.contracts.SmartContract.setProvider(App.web3Provider);
+            App.SmartContract = await App.contracts.SmartContract.deployed();
+            this.ordersCount = await App.SmartContract.orderseq();
+            this.invoicesCount = await App.SmartContract.invoiceseq();
         },
 
         async getOrders() {
             this.orders = [];
             for (let i = 1; i <= this.ordersCount; i++) {
-                let task = await App.Deal.queryOrder(i);
+                let task = await App.SmartContract.queryOrder(i);
                 task[3] = JSON.parse(JSON.stringify(task[3]));
                 task[4] = JSON.parse(JSON.stringify(task[4]));
                 task[5] = JSON.parse(JSON.stringify(task[5]));
-                let task2 = await App.Deal.queryOrder2(i);
+                let task2 = await App.SmartContract.queryOrder2(i);
                 task2 = JSON.parse(JSON.stringify(task2));
                 task.push(task2);
                 this.orders.push(task);
@@ -81,7 +81,7 @@ var app = new Vue({
         async getInvoices() {
             this.invoices = [];
             for (let i = 1; i <= this.invoicesCount; i++) {
-                let task = await App.Deal.getInvoice(i);
+                let task = await App.SmartContract.getInvoice(i);
                 task[2] = JSON.parse(JSON.stringify(task[2]));
                 task[4] = JSON.parse(JSON.stringify(task[4]));
                 task[5] = JSON.parse(JSON.stringify(task[5]));
@@ -91,7 +91,7 @@ var app = new Vue({
 
         async createOrder(e) {
             e.preventDefault();
-            await App.Deal.sendOrder(this.name, this.quantity);
+            await App.SmartContract.sendOrder(this.name, this.quantity);
             this.name = "";
             this.quantity = 1;
             this.ordersCount++;
@@ -102,7 +102,7 @@ var app = new Vue({
         async setPrice(e) {
             e.preventDefault();
             let which = this.orders[this.orderNo - 1][3] <= 0 ? 1 : 2;
-            await App.Deal.sendPrice(this.orderNo, this.price, which);
+            await App.SmartContract.sendPrice(this.orderNo, this.price, which);
             this.getOrders();
             this.orderNo = null;
             this.price = 1;
@@ -110,17 +110,17 @@ var app = new Vue({
         },
 
         async pay(nr) {
-            await App.Deal.sendSafepay(nr);
+            await App.SmartContract.sendSafepay(nr);
             this.getOrders();
         },
 
         async sendInvoice(nr) {
-            await App.Deal.sendInvoice(nr, parseInt(new Date().getTime()/1000), '0x558669A7d5D8936bBD07c073860a331DcDE234Ac');
+            await App.SmartContract.sendInvoice(nr, parseInt(new Date().getTime()/1000), '0x558669A7d5D8936bBD07c073860a331DcDE234Ac');
             this.getOrders();
         },
 
         async delivery(nr) {
-            await App.Deal.delivery(nr, parseInt(new Date().getTime()/1000));
+            await App.SmartContract.delivery(nr, parseInt(new Date().getTime()/1000));
             this.getInvoices();
         }
     }
